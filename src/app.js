@@ -2,18 +2,44 @@ const express = require('express');
 const { connectDB } = require("./config/database");
 const app = express();
 const { User } = require("./models/user");
+const { validateSignUpData }=require("./utils/validation");
+const bcrypt=require('bcrypt');
+const validator=require('validator');
 
 app.use(express.json());
 
 app.post("/signup", async (req, res) => {
-  const body = req.body;
-  const user = new User(body);
-
   try {
+    validateSignUpData(req);
+    const {firstName, lastName, emailId, password}=req.body;
+    const hashedPassword= await bcrypt.hash(password, 10);
+    const user = new User({
+      firstName,
+      lastName,
+      emailId,
+      password: hashedPassword,
+    });
     await user.save();
     res.send("User Added successfully!");
   } catch (err) {
     res.status(400).send("Error saving the user:" + err.message);
+  }
+});
+
+app.post('/login', async (req, res)=>{
+  try{
+    const {emailId, password}=req.body;
+    if(!validator.isEmail(emailId)){
+      throw new Error("Format of emailId is Incorrect!!");
+    }
+    const user= await User.findOne({emailId:emailId});
+    if(!user) throw new Error("Invalid Credentials..!!!");
+    const isPasswordValid=await bcrypt.compare(password, user.password);
+    if(!isPasswordValid) throw new Error("Invalid Credentials..!!!");
+    res.send("Logged in Successfully...!!");
+  } 
+  catch(err){
+    res.status(400).send("ERROR : " + err.message);
   }
 });
 
