@@ -17,8 +17,12 @@ router.post("/signup", async (req, res) => {
       emailId,
       password: hashedPassword,
     });
-    await user.save();
-    res.send("User Added successfully!");
+
+    const savedUser=await user.save();
+    const token = await savedUser.getJWT();
+    res.cookie("token", token, {
+      expires: new Date(Date.now() + 8 * 3600000)
+    }).json({msg: "User Added successfully!", data: savedUser});
   } catch (err) {
     res.status(400).send("Error saving the user:" + err.message);
   }
@@ -41,7 +45,7 @@ router.post('/login', async (req, res) => {
 
     res.cookie("token", token, {
       expires: new Date(Date.now() + 8 * 3600000)
-    }).send("Logged in Successfully...!!");
+    }).send(user);
   }
   catch (err) {
     res.status(400).send("ERROR : " + err.message);

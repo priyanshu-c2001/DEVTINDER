@@ -7,7 +7,7 @@ const auth = async (req, res, next) => {
         const { token } = cookie;
 
         if (!token) {
-            throw new Error("Invalid Token!!");
+            res.status(401).json({message: "Please Login!"});
         }
 
         const decodedToken = jwt.verify(token, "DEV@Tinder$790");
