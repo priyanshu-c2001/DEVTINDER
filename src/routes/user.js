@@ -56,6 +56,8 @@ userRouter.get('/user/connections', auth, async(req, res)=>{
             throw new Error("You have no Connections!!");
         }
 
+        console.log("Connections: ", connections);
+
         const data= connections.map((user)=>(user.fromUserId._id.toString()===loggedInUser._id.toString())?user.toUserId:user.fromUserId);
         
         res.json({
